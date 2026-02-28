@@ -138,6 +138,7 @@ Changes take effect after `./stop.sh && ./up.sh`.
 - **Claude Code** (`@anthropic-ai/claude-code`)
 - **claude-flow** (`claude-flow@alpha`)
 - **Playwright** + Chromium browser
+- **Azure CLI** (`az`) via Microsoft apt repository
 - **UFW** firewall (SSH open, QEMU NAT allowed)
 - **OpenSSH** server with password auth enabled
 - **virtio-9p** shared folder support

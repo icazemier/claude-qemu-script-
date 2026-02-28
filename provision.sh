@@ -53,6 +53,21 @@ apt-get install -y \
   lightdm-gtk-greeter \
   x11-xserver-utils
 
+# ─── Azure CLI ───────────────────────────────────────────────────────────────
+# MIT licensed. Installs via Microsoft's official apt repository.
+curl -sLS https://packages.microsoft.com/keys/microsoft.asc \
+  | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg
+chmod go+r /etc/apt/keyrings/microsoft.gpg
+echo "Types: deb
+URIs: https://packages.microsoft.com/repos/azure-cli/
+Suites: $(lsb_release -cs)
+Components: main
+Architectures: $(dpkg --print-architecture)
+Signed-by: /etc/apt/keyrings/microsoft.gpg" \
+  > /etc/apt/sources.list.d/azure-cli.sources
+apt-get update
+apt-get install -y azure-cli
+
 # ─── Enable SSH password authentication ──────────────────────────────────────
 # Ubuntu 24.04 cloud images disable password auth by default.
 CLOUDSSH=/etc/ssh/sshd_config.d/60-cloudimg-settings.conf
