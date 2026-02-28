@@ -279,23 +279,46 @@ if $FIRST_BOOT; then
   while ! nc -z localhost 2222 2>/dev/null; do
     sleep 3
   done
-  echo "  SSH is up. Streaming provision log..."
+  SSH_OPTS=(-p 2222 -i "$PROVISION_KEY"
+    -o StrictHostKeyChecking=no
+    -o UserKnownHostsFile=/dev/null
+    -o LogLevel=ERROR
+    -o BatchMode=yes)
+
+  # Wait until the SSH key is actually accepted (cloud-init may not have written
+  # authorized_keys yet even though the SSH port is open)
+  echo -n "  Waiting for SSH key auth"
+  until ssh "${SSH_OPTS[@]}" claude@localhost true 2>/dev/null; do
+    echo -n "."
+    sleep 2
+  done
+  echo " ready."
+  echo ""
+  echo "  Streaming provision log..."
   echo ""
 
-  SSH_OPTS="-p 2222 -i $PROVISION_KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
-  # Wait for log file to appear on the VM, then tail it
-  REMOTE_CMD='until [ -f /var/log/provision.log ]; do sleep 1; done; tail -f /var/log/provision.log'
+  # Run the completion check on the remote side so the script exits cleanly,
+  # causing SSH to exit naturally and avoiding a stuck tail -f process.
+  REMOTE_CMD='until [ -f /var/log/provision.log ]; do sleep 1; done
+tail -n +1 -f /var/log/provision.log | while IFS= read -r line; do
+  echo "$line"
+  case "$line" in *"Provisioning complete"*) break;; esac
+done'
 
-  ssh $SSH_OPTS claude@localhost "$REMOTE_CMD" \
+  ssh "${SSH_OPTS[@]}" claude@localhost "$REMOTE_CMD" \
     | while IFS= read -r line; do
         echo "  $line"
-        [[ "$line" == *"Provisioning complete"* ]] && break
-      done || true
+      done
 
   echo ""
   echo "╔══════════════════════════════════════════════════════════╗"
   echo "║  Provisioning complete — VM is ready!                   ║"
   echo "║  Run: ./ssh.sh                                          ║"
   echo "╚══════════════════════════════════════════════════════════╝"
+  echo ""
+  echo "  Last provision log lines:"
+  ssh "${SSH_OPTS[@]}" claude@localhost \
+    'tail -5 /var/log/provision.log 2>/dev/null || echo "log not available"' \
+    | sed 's/^/  /'
   echo ""
 fi
