@@ -6,3 +6,5 @@ cloud-init/user-data
 vm.pid
 qemu-monitor.sock
 .env
+provision_key
+provision_key.pub

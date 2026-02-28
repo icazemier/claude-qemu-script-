@@ -108,6 +108,15 @@ if [ -f vm.pid ]; then
   fi
 fi
 
+# ─── Provision SSH key (passwordless access during first boot) ────────────────
+
+PROVISION_KEY="$SCRIPT_DIR/provision_key"
+if [ ! -f "$PROVISION_KEY" ]; then
+  echo "==> Generating provision SSH keypair..."
+  ssh-keygen -t ed25519 -f "$PROVISION_KEY" -N "" -C "claude-qemu-provision" -q
+fi
+PROVISION_PUBKEY=$(cat "${PROVISION_KEY}.pub")
+
 # ─── First run: create disk + cloud-init ISO ──────────────────────────────────
 
 if [ ! -f disk.qcow2 ]; then
@@ -143,6 +152,8 @@ users:
     groups: sudo
     shell: /bin/bash
     lock_passwd: false
+    ssh_authorized_keys:
+      - ${PROVISION_PUBKEY}
 
 chpasswd:
   list: |
@@ -266,23 +277,18 @@ if $FIRST_BOOT; then
   while ! nc -z localhost 2222 2>/dev/null; do
     sleep 3
   done
-  echo "  SSH is up. Streaming provision log (password: claude):"
+  echo "  SSH is up. Streaming provision log..."
   echo ""
 
-  SSH_OPTS="-p 2222 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
-  # Wait for log file to appear, then tail it
+  SSH_OPTS="-p 2222 -i $PROVISION_KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+  # Wait for log file to appear on the VM, then tail it
   REMOTE_CMD='until [ -f /var/log/provision.log ]; do sleep 1; done; tail -f /var/log/provision.log'
 
-  {
-    if command -v sshpass &>/dev/null; then
-      sshpass -p claude ssh $SSH_OPTS claude@localhost "$REMOTE_CMD" 2>/dev/null
-    else
-      ssh $SSH_OPTS claude@localhost "$REMOTE_CMD"
-    fi
-  } | while IFS= read -r line; do
-      echo "  $line"
-      [[ "$line" == *"Provisioning complete"* ]] && break
-    done || true
+  ssh $SSH_OPTS claude@localhost "$REMOTE_CMD" \
+    | while IFS= read -r line; do
+        echo "  $line"
+        [[ "$line" == *"Provisioning complete"* ]] && break
+      done || true
 
   echo ""
   echo "╔══════════════════════════════════════════════════════════╗"
