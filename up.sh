@@ -243,6 +243,9 @@ fi
 
 # ─── Start VM ─────────────────────────────────────────────────────────────────
 
+FIRST_BOOT=false
+[ ! -f disk.qcow2.initialized ] && FIRST_BOOT=true
+
 echo "==> Starting VM (${VM_CPUS} CPUs, ${VM_MEMORY} MB RAM)..."
 "$QEMU_BIN" "${QEMU_ARGS[@]}" &>/dev/null &
 echo $! > vm.pid
@@ -256,10 +259,35 @@ echo "  SSH:   ./ssh.sh           (or: ssh -p 2222 claude@localhost)"
 echo "  VNC:   $VNC_OPEN_CMD"
 echo "  Stop:  ./stop.sh"
 echo ""
-if [ ! -f disk.qcow2.initialized ]; then
-  echo "  First boot: cloud-init is provisioning the VM (~3-5 min)."
-  echo "  Watch progress:"
-  echo "    ssh -p 2222 ubuntu@localhost 'tail -f /var/log/provision.log'"
-  echo ""
+
+if $FIRST_BOOT; then
   touch disk.qcow2.initialized
+  echo "  First boot — waiting for SSH..."
+  while ! nc -z localhost 2222 2>/dev/null; do
+    sleep 3
+  done
+  echo "  SSH is up. Streaming provision log (password: claude):"
+  echo ""
+
+  SSH_OPTS="-p 2222 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR"
+  # Wait for log file to appear, then tail it
+  REMOTE_CMD='until [ -f /var/log/provision.log ]; do sleep 1; done; tail -f /var/log/provision.log'
+
+  {
+    if command -v sshpass &>/dev/null; then
+      sshpass -p claude ssh $SSH_OPTS claude@localhost "$REMOTE_CMD" 2>/dev/null
+    else
+      ssh $SSH_OPTS claude@localhost "$REMOTE_CMD"
+    fi
+  } | while IFS= read -r line; do
+      echo "  $line"
+      [[ "$line" == *"Provisioning complete"* ]] && break
+    done || true
+
+  echo ""
+  echo "╔══════════════════════════════════════════════════════════╗"
+  echo "║  Provisioning complete — VM is ready!                   ║"
+  echo "║  Run: ./ssh.sh                                          ║"
+  echo "╚══════════════════════════════════════════════════════════╝"
+  echo ""
 fi
