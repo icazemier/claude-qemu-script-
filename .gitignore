@@ -1,0 +1,8 @@
+images/
+disk.qcow2
+disk.qcow2.initialized
+cloud-init.iso
+cloud-init/user-data
+vm.pid
+qemu-monitor.sock
+.env
