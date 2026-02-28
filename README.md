@@ -230,6 +230,41 @@ Ensure `SHARED_FOLDER` is set in `.env` before starting the VM.
 
 ---
 
+## References
+
+### Hypervisor & QEMU
+- [QEMU documentation](https://www.qemu.org/docs/master/) — system emulator and virtualizer
+- [QEMU user-mode networking](https://www.qemu.org/docs/master/system/net.html) — NAT, hostfwd, 10.0.2.2 gateway
+- [Apple Hypervisor.framework (HVF)](https://developer.apple.com/documentation/hypervisor) — native acceleration on Apple Silicon
+- [KVM (Kernel-based Virtual Machine)](https://www.linux-kvm.org/page/Documents) — native acceleration on Linux
+- [EDK2 / OVMF UEFI firmware](https://github.com/tianocore/tianocore.github.io/wiki/OVMF) — UEFI for QEMU VMs
+- [qcow2 disk image format](https://www.qemu.org/docs/master/system/images.html) — copy-on-write overlay disk
+
+### virtio devices
+- [virtio specification](https://docs.oasis-open.org/virtio/virtio/v1.2/virtio-v1.2.html) — standard paravirtualized device interface
+- [virtio-gpu](https://www.qemu.org/docs/master/system/devices/virtio-gpu.html) — paravirtualized display adapter
+- [virtio-9p / Plan 9 filesystem](https://wiki.qemu.org/Documentation/9psetup) — shared folder support (`-virtfs`)
+- [virtio-net](https://wiki.qemu.org/Documentation/Networking) — paravirtualized network adapter
+
+### Provisioning
+- [Cloud-init documentation](https://cloudinit.readthedocs.io/) — first-boot VM provisioning
+- [Cloud-init NoCloud datasource](https://cloudinit.readthedocs.io/en/latest/reference/datasources/nocloud.html) — seed disk via ISO/FAT image
+- [Ubuntu cloud images](https://cloud-images.ubuntu.com/) — pre-built minimal Ubuntu images
+
+### Desktop & display
+- [XFCE4](https://www.xfce.org/) — lightweight desktop environment
+- [LightDM](https://github.com/canonical/lightdm) — display manager with auto-login support
+- [xrandr](https://www.x.org/wiki/Projects/XRandR/) — X display resize/configuration tool
+
+### Tools installed in the VM
+- [nvm](https://github.com/nvm-sh/nvm) — Node.js version manager
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) — Anthropic's agentic coding CLI
+- [claude-flow](https://github.com/ruvnet/claude-flow) — multi-agent orchestration for Claude
+- [Playwright](https://playwright.dev/) — browser automation framework
+- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/) — Microsoft Azure command-line tool
+
+---
+
 ## License
 
 MIT
