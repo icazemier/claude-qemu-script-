@@ -223,6 +223,10 @@ DESKTOP
 chmod +x /home/claude/Desktop/claude-terminal.desktop
 chown -R claude:claude /home/claude/Desktop
 
+# ─── Raise inotify file-watch limit ──────────────────────────────────────────
+echo 'fs.inotify.max_user_watches=524288' > /etc/sysctl.d/99-inotify-watches.conf
+sysctl --system
+
 # ─── Clean up caches ──────────────────────────────────────────────────────────
 apt-get clean
 rm -rf /var/lib/apt/lists/*
