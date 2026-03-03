@@ -223,6 +223,15 @@ DESKTOP
 chmod +x /home/claude/Desktop/claude-terminal.desktop
 chown -R claude:claude /home/claude/Desktop
 
+# ─── Swap (4 GB) ─────────────────────────────────────────────────────────────
+if [ ! -f /swapfile ]; then
+  fallocate -l 4G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
 # ─── Raise inotify file-watch limit ──────────────────────────────────────────
 echo 'fs.inotify.max_user_watches=524288' > /etc/sysctl.d/99-inotify-watches.conf
 sysctl --system
