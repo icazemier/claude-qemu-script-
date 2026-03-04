@@ -51,7 +51,8 @@ apt-get install -y \
   thunar \
   lightdm \
   lightdm-gtk-greeter \
-  x11-xserver-utils
+  x11-xserver-utils \
+  gitg
 
 # ─── Azure CLI ───────────────────────────────────────────────────────────────
 # MIT licensed. Installs via Microsoft's official apt repository.
