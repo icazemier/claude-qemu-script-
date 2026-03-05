@@ -11,7 +11,7 @@ trap 'log "PROVISION FAILED at line $LINENO (exit code $?)"; exit 1' ERR
 # ─── Logging ─────────────────────────────────────────────────────────────────
 
 PROVISION_START=$SECONDS
-TOTAL_PROVISION_STEPS=14
+TOTAL_PROVISION_STEPS=15
 PROVISION_STEP=0
 
 log() {
@@ -198,6 +198,11 @@ apt-get install -y \
   libasound2t64 libxshmfence1 libx11-xcb1 2>/dev/null || true
 su - claude -c 'source ~/.nvm/nvm.sh && npx playwright install chromium'
 
+# ─── Install .NET SDK 8.0 for claude user ────────────────────────────────
+
+provision_step "Installing .NET SDK 8.0..."
+su - claude -c 'curl -fsSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel 8.0'
+
 # ─── Auto-resize display for virtio-gpu ──────────────────────────────────────
 
 provision_step "Setting up display auto-resize..."
@@ -262,6 +267,10 @@ cat > /home/claude/.bashrc << 'BASHRC'
 # ~/.bashrc: executed by bash(1) for non-login shells.
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
+
+# .NET SDK
+export DOTNET_ROOT="$HOME/.dotnet"
+export PATH="$PATH:$DOTNET_ROOT"
 
 # If not running interactively, don't do anything
 case $- in
@@ -408,6 +417,7 @@ echo "║    2. API key — export ANTHROPIC_API_KEY=your-key       ║"
 echo "║                                                         ║"
 echo "║  Available tools:                                       ║"
 echo "║    nvm            Node version manager                  ║"
+echo "║    dotnet         .NET SDK 8.0                          ║"
 echo "║    claude         Claude Code                           ║"
 echo "║    claude-flow    claude-flow orchestrator               ║"
 echo "╚══════════════════════════════════════════════════════════╝"
