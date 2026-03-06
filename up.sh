@@ -370,7 +370,8 @@ ok "PID $QEMU_PID"
 # Check if sshd banner is present (not just TCP port open)
 ssh_banner_check() {
   local banner
-  banner=$(timeout 3 bash -c 'cat < /dev/tcp/localhost/2222' 2>/dev/null || true)
+  # nc -w3 works on macOS and Linux (netcat-openbsd, ncat); avoid 'timeout' (missing on macOS)
+  banner=$(echo "" | nc -w3 localhost 2222 2>/dev/null || true)
   [[ "$banner" == SSH-2.0-* ]]
 }
 
