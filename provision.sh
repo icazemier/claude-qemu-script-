@@ -11,7 +11,7 @@ trap 'log "PROVISION FAILED at line $LINENO (exit code $?)"; exit 1' ERR
 # ─── Logging ─────────────────────────────────────────────────────────────────
 
 PROVISION_START=$SECONDS
-TOTAL_PROVISION_STEPS=15
+TOTAL_PROVISION_STEPS=16
 PROVISION_STEP=0
 
 log() {
@@ -257,7 +257,7 @@ mkdir -p /home/claude/shared
 chown claude:claude /home/claude/shared
 
 if ! grep -q "shared.*9p" /etc/fstab; then
-  echo "shared /home/claude/shared 9p trans=virtio,version=9p2000.L,rw,_netdev,nofail 0 0" >> /etc/fstab
+  echo "shared /home/claude/shared 9p trans=virtio,version=9p2000.L,rw,access=client,_netdev,nofail 0 0" >> /etc/fstab
 fi
 mount /home/claude/shared 2>/dev/null || true
 
@@ -470,6 +470,11 @@ echo 'fs.inotify.max_user_watches=524288' > /etc/sysctl.d/99-inotify-watches.con
 sysctl --system
 
 # ─── Clean up caches ──────────────────────────────────────────────────────────
+
+provision_step "Installing helper scripts..."
+cp /tmp/link-modules.sh /home/claude/link-modules.sh 2>/dev/null || true
+chown claude:claude /home/claude/link-modules.sh 2>/dev/null || true
+chmod +x /home/claude/link-modules.sh 2>/dev/null || true
 
 provision_step "Cleaning up..."
 apt-get clean

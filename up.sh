@@ -234,6 +234,7 @@ if [ ! -f disk.qcow2 ]; then
   # Generate cloud-init/user-data with provision.sh embedded as base64
   echo "  Generating cloud-init user-data..."
   PROVISION_B64=$(base64 < provision.sh | tr -d '\n')
+  LINKMOD_B64=$(base64 < link-modules.sh | tr -d '\n')
 
   cat > cloud-init/user-data << USERDATA
 #cloud-config
@@ -259,6 +260,10 @@ write_files:
   - path: /tmp/provision.sh
     encoding: b64
     content: ${PROVISION_B64}
+    permissions: '0755'
+  - path: /tmp/link-modules.sh
+    encoding: b64
+    content: ${LINKMOD_B64}
     permissions: '0755'
 
 runcmd:
@@ -338,7 +343,7 @@ QEMU_ARGS+=(-netdev "$NET")
 
 # Shared folder via virtio-9p
 if [ -n "$SHARED_FOLDER" ] && [ -d "$SHARED_FOLDER" ]; then
-  QEMU_ARGS+=(-virtfs "local,path=${SHARED_FOLDER},mount_tag=shared,security_model=mapped-xattr")
+  QEMU_ARGS+=(-virtfs "local,path=${SHARED_FOLDER},mount_tag=shared,security_model=none")
 fi
 
 # ─── Step 2: Start QEMU ─────────────────────────────────────────────────────

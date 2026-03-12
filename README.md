@@ -51,10 +51,10 @@ First run downloads the Ubuntu 24.04 cloud image (~600 MB) and provisions the VM
 **Desktop (VNC):**
 ```bash
 # macOS — open RealVNC Viewer, connect to:
-localhost:5900            # password: claude
+localhost:5910            # password: claude
 
 # Linux
-vncviewer localhost:5900
+vncviewer localhost:5910
 ```
 
 ---
@@ -129,7 +129,7 @@ Changes take effect after `./stop.sh && ./up.sh`.
 | User | `claude` |
 | Password | `claude` |
 | SSH port | `2222` |
-| VNC port | `5900` |
+| VNC port | `5910` |
 
 ---
 
@@ -157,6 +157,18 @@ SHARED_FOLDER=/Users/you/myproject
 ```
 
 The directory appears at `/home/claude/shared` inside the VM. If not set, `/home/claude/shared` is an empty directory.
+
+### node_modules on the shared folder
+
+Native `node_modules` installed on macOS won't work inside the Linux VM. Use the included helper to relocate `node_modules` to the VM's local filesystem:
+
+```bash
+cd /home/claude/shared/my-project
+~/link-modules.sh            # symlinks node_modules to VM local disk + runs npm install
+~/link-modules.sh --clean    # removes symlink and local modules
+```
+
+This creates a symlink from `node_modules` to `~/.local-modules/<project>/` on the VM's ext4 disk, so native binaries compile correctly for Linux.
 
 ---
 
@@ -220,7 +232,7 @@ Ensure `SHARED_FOLDER` is set in `.env` before starting the VM.
 |---------|---------------|
 | Hypervisor | QEMU + HVF (macOS) / KVM (Linux) |
 | Provisioning | Cloud-init (first boot only) |
-| Display | VNC on port 5900 via `virtio-gpu-pci` |
+| Display | VNC on port 5910 via `virtio-gpu-pci` |
 | Mouse | `virtio-tablet-pci` (absolute positioning) |
 | Display resize | `xrandr` polling service |
 | Shared folders | `virtio-9p` (`-virtfs` flag) |
