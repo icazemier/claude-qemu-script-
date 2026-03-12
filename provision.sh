@@ -253,12 +253,16 @@ systemctl start virtio-autoresize
 
 # ─── Shared folder via virtio-9p ─────────────────────────────────────────────
 
-mkdir -p /home/claude/shared
+apt-get install -y bindfs
+
+mkdir -p /mnt/shared-raw /home/claude/shared
 chown claude:claude /home/claude/shared
 
 if ! grep -q "shared.*9p" /etc/fstab; then
-  echo "shared /home/claude/shared 9p trans=virtio,version=9p2000.L,rw,access=client,_netdev,nofail 0 0" >> /etc/fstab
+  echo "shared /mnt/shared-raw 9p trans=virtio,version=9p2000.L,rw,access=client,_netdev,nofail 0 0" >> /etc/fstab
+  echo "/mnt/shared-raw /home/claude/shared fuse.bindfs map=501/1001,nofail 0 0" >> /etc/fstab
 fi
+mount /mnt/shared-raw 2>/dev/null || true
 mount /home/claude/shared 2>/dev/null || true
 
 # ─── Write .bashrc (complete, with git branch prompt) ────────────────────────

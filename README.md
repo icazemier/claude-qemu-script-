@@ -158,6 +158,8 @@ SHARED_FOLDER=/Users/you/myproject
 
 The directory appears at `/home/claude/shared` inside the VM. If not set, `/home/claude/shared` is an empty directory.
 
+Files are fully readable and writable from inside the VM thanks to **bindfs**, which remaps the macOS host uid (501) to the VM user `claude` (1001). Under the hood, 9p mounts to `/mnt/shared-raw` and bindfs overlays it onto `/home/claude/shared`.
+
 ### node_modules on the shared folder
 
 Native `node_modules` installed on macOS won't work inside the Linux VM. Use the included helper to relocate `node_modules` to the VM's local filesystem:
@@ -235,7 +237,7 @@ Ensure `SHARED_FOLDER` is set in `.env` before starting the VM.
 | Display | VNC on port 5910 via `virtio-gpu-pci` |
 | Mouse | `virtio-tablet-pci` (absolute positioning) |
 | Display resize | `xrandr` polling service |
-| Shared folders | `virtio-9p` (`-virtfs` flag) |
+| Shared folders | `virtio-9p` + `bindfs` uid remapping (501→1001) |
 | Networking | QEMU user-mode NAT; host reachable at `10.0.2.2` |
 | Disk | 50 GB qcow2 overlay on Ubuntu 24.04 cloud image |
 | State | `disk.qcow2` + `vm.pid` |
